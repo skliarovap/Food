@@ -108,7 +108,10 @@ def validate(data: dict) -> list[str]:
         basis = product.get("basis")
         if basis not in BASIS_LABEL:
             errors.append(f"{label}: basis должен быть g, ml или pcs")
-        quantity = _as_number(product.get("quantity"), f"{label}.quantity", errors)
+        if product.get("quantity") is None:
+            quantity = None
+        else:
+            quantity = _as_number(product.get("quantity"), f"{label}.quantity", errors)
         if quantity is not None and quantity < 0:
             errors.append(f"{label}: quantity не может быть отрицательным")
         if "minQuantity" in product and product.get("minQuantity") is not None:
@@ -264,10 +267,14 @@ def product_lines(products: list[dict]) -> list[str]:
     lines = []
     for product in products:
         basis = product.get("basis")
-        amount = format_amount(float(product.get("quantity") or 0), basis)
+        quantity = product.get("quantity")
+        if quantity is None:
+            amount = "количество не указано"
+        else:
+            amount = format_amount(float(quantity), basis)
         bits = [f"{product.get('name')} - {amount}"]
         minimum = product.get("minQuantity")
-        if minimum is not None and float(product.get("quantity") or 0) <= float(minimum):
+        if minimum is not None and quantity is not None and float(quantity) <= float(minimum):
             bits.append(f"мало (порог {format_amount(float(minimum), basis)})")
         if product.get("kcal") is not None:
             per = "1 шт" if basis == "pcs" else f"100 {BASIS_LABEL[basis]}"
@@ -319,7 +326,7 @@ def render_recipe(recipe: dict, products_by_id: dict[str, dict]) -> str:
     lines = [
         recipe["name"],
         f"Порций: {fmt(nutrition['servings'])}",
-        f"На порцию: {format_kcal(nutrition)}",
+        format_kcal(nutrition),
         f"На всё блюдо: {format_kcal(nutrition, per_serving=False)}",
     ]
     macro_bits = []
@@ -336,7 +343,10 @@ def render_recipe(recipe: dict, products_by_id: dict[str, dict]) -> str:
         product = products_by_id.get(ingredient["productId"])
         name = product.get("name") if product else ingredient["productId"]
         basis = product.get("basis") if product else ""
-        lines.append(f"  {name} - {format_amount(float(ingredient['amount']), basis)}")
+        line = f"  {name} - {format_amount(float(ingredient['amount']), basis)}"
+        if ingredient.get("note"):
+            line += f" ({ingredient['note']})"
+        lines.append(line)
     steps = recipe.get("steps") or []
     if steps:
         lines.append("Шаги:")

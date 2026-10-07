@@ -1,3 +1,43 @@
 {
-  "recipes": []
+  "recipes": [
+    {
+      "id": "belgian-waffles",
+      "name": "Бельгийские вафли",
+      "servings": 6.5,
+      "ingredients": [
+        {
+          "productId": "butter",
+          "amount": 130,
+          "note": "растопленное"
+        },
+        {
+          "productId": "milk",
+          "amount": 200
+        },
+        {
+          "productId": "wheat-flour",
+          "amount": 200
+        },
+        {
+          "productId": "egg",
+          "amount": 2
+        },
+        {
+          "productId": "sugar",
+          "amount": 100
+        },
+        {
+          "productId": "baking-powder",
+          "amount": 5,
+          "note": "1 ч. л."
+        }
+      ],
+      "steps": [
+        "Масло растопить.",
+        "На одну вафлю выкладывать 4,5-5 ложек теста."
+      ],
+      "tags": ["выпечка"],
+      "notes": "На карточке было 130 мл молока, здесь около 200 мл. Порция - одна вафля, этой закладки хватает примерно на 6,5 вафель. Если умножить все ингредиенты на 2, получается 13 вафель."
+    }
+  ]
 }

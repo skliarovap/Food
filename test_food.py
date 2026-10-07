@@ -4,7 +4,7 @@ import unittest
 from contextlib import redirect_stdout
 from pathlib import Path
 
-from food import compute_recipe_nutrition, load_all, main, scale_nutrient, validate
+from food import compute_recipe_nutrition, index_by_id, load_all, main, scale_nutrient, validate
 
 
 OATS = {
@@ -98,6 +98,25 @@ class ValidateTests(unittest.TestCase):
         data = load_all(Path(__file__).resolve().parent / "data")
         self.assertEqual(validate(data), [])
 
+    def test_unknown_quantity_is_valid(self):
+        data = {
+            "products": [
+                {
+                    "id": "salt",
+                    "name": "Соль",
+                    "basis": "g",
+                    "quantity": None,
+                    "kcal": 0,
+                    "protein": 0,
+                    "fat": 0,
+                    "carbs": 0,
+                }
+            ],
+            "recipes": [],
+            "preps": [],
+        }
+        self.assertEqual(validate(data), [])
+
     def test_unknown_product_and_duplicate_id(self):
         data = {
             "products": [OATS, dict(OATS)],
@@ -133,6 +152,27 @@ class ValidateTests(unittest.TestCase):
         errors = validate(data)
         self.assertTrue(any("нет рецепта missing" in error for error in errors))
         self.assertTrue(any("madeOn" in error for error in errors))
+
+
+class WaffleRecipeTests(unittest.TestCase):
+    def test_saved_waffle_recipe(self):
+        data = load_all(Path(__file__).resolve().parent / "data")
+        self.assertEqual(validate(data), [])
+        recipe = index_by_id(data["recipes"])["belgian-waffles"]
+        nutrition = compute_recipe_nutrition(recipe, index_by_id(data["products"]))
+        self.assertAlmostEqual(nutrition["servings"], 6.5)
+        self.assertAlmostEqual(nutrition["per_serving"]["kcal"], 2334.75 / 6.5, places=2)
+        self.assertEqual(nutrition["missing"]["kcal"], [])
+
+        summary = io.StringIO()
+        with redirect_stdout(summary):
+            code = main(["recipe", "belgian-waffles"])
+        self.assertEqual(code, 0)
+        text = summary.getvalue()
+        self.assertIn("Молоко 3,2% - 200 мл", text)
+        self.assertIn("Разрыхлитель - 5 г (1 ч. л.)", text)
+        self.assertIn("359,2 ккал на порцию", text)
+        self.assertIn("13 вафель", text)
 
 
 class CliTests(unittest.TestCase):
