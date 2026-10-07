@@ -1,0 +1,193 @@
+import io
+import tempfile
+import unittest
+from contextlib import redirect_stdout
+from pathlib import Path
+
+from food import compute_recipe_nutrition, load_all, main, scale_nutrient, validate
+
+
+OATS = {
+    "id": "oats",
+    "name": "Овсянка",
+    "basis": "g",
+    "quantity": 500,
+    "kcal": 379,
+    "protein": 13.5,
+    "fat": 6.2,
+    "carbs": 67.7,
+}
+MILK = {
+    "id": "milk",
+    "name": "Молоко",
+    "basis": "ml",
+    "quantity": 900,
+    "kcal": 60,
+    "protein": 3,
+    "fat": 3.2,
+    "carbs": 4.7,
+}
+EGG = {
+    "id": "egg",
+    "name": "Яйцо",
+    "basis": "pcs",
+    "quantity": 6,
+    "kcal": 155,
+    "protein": 13,
+    "fat": 11,
+    "carbs": 1.1,
+}
+SALT = {
+    "id": "salt",
+    "name": "Соль",
+    "basis": "g",
+    "quantity": 100,
+    "kcal": None,
+}
+
+
+def products_by_id(*items):
+    return {item["id"]: item for item in items}
+
+
+class NutritionTests(unittest.TestCase):
+    def test_grams_and_milliliters_per_serving(self):
+        recipe = {
+            "id": "oatmeal",
+            "name": "Овсянка",
+            "servings": 2,
+            "ingredients": [
+                {"productId": "oats", "amount": 100},
+                {"productId": "milk", "amount": 200},
+            ],
+        }
+        nutrition = compute_recipe_nutrition(recipe, products_by_id(OATS, MILK))
+        self.assertAlmostEqual(nutrition["total"]["kcal"], 499.0)
+        self.assertAlmostEqual(nutrition["per_serving"]["kcal"], 249.5)
+        self.assertAlmostEqual(nutrition["total"]["protein"], 19.5)
+        self.assertEqual(nutrition["missing"]["kcal"], [])
+        self.assertTrue(nutrition["seen"]["kcal"])
+
+    def test_pieces(self):
+        self.assertAlmostEqual(scale_nutrient(EGG, 2, "kcal"), 310.0)
+        recipe = {
+            "id": "eggs",
+            "servings": 1,
+            "ingredients": [{"productId": "egg", "amount": 2}],
+        }
+        nutrition = compute_recipe_nutrition(recipe, products_by_id(EGG))
+        self.assertAlmostEqual(nutrition["total"]["protein"], 26.0)
+
+    def test_missing_kcal_keeps_partial_sum(self):
+        recipe = {
+            "id": "oatmeal",
+            "servings": 1,
+            "ingredients": [
+                {"productId": "oats", "amount": 100},
+                {"productId": "salt", "amount": 1},
+            ],
+        }
+        nutrition = compute_recipe_nutrition(recipe, products_by_id(OATS, SALT))
+        self.assertAlmostEqual(nutrition["total"]["kcal"], 379.0)
+        self.assertEqual(nutrition["missing"]["kcal"], ["Соль"])
+        self.assertTrue(nutrition["seen"]["kcal"])
+
+
+class ValidateTests(unittest.TestCase):
+    def test_empty_repo_data_is_valid(self):
+        data = load_all(Path(__file__).resolve().parent / "data")
+        self.assertEqual(validate(data), [])
+
+    def test_unknown_product_and_duplicate_id(self):
+        data = {
+            "products": [OATS, dict(OATS)],
+            "recipes": [
+                {
+                    "id": "bad",
+                    "name": "Пусто",
+                    "servings": 1,
+                    "ingredients": [{"productId": "nope", "amount": 1}],
+                }
+            ],
+            "preps": [],
+        }
+        errors = validate(data)
+        self.assertTrue(any("повтор id oats" in error for error in errors))
+        self.assertTrue(any("нет продукта nope" in error for error in errors))
+
+    def test_prep_date_and_recipe_link(self):
+        data = {
+            "products": [],
+            "recipes": [],
+            "preps": [
+                {
+                    "id": "soup",
+                    "name": "Суп",
+                    "portionsTotal": 4,
+                    "portionsLeft": 4,
+                    "recipeId": "missing",
+                    "madeOn": "07.10.2026",
+                }
+            ],
+        }
+        errors = validate(data)
+        self.assertTrue(any("нет рецепта missing" in error for error in errors))
+        self.assertTrue(any("madeOn" in error for error in errors))
+
+
+class CliTests(unittest.TestCase):
+    def test_summary_of_sample_files(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "products.json").write_text(
+                """
+                {"products": [
+                  {"id": "oats", "name": "Овсянка", "basis": "g", "quantity": 80, "minQuantity": 200, "kcal": 379,
+                   "protein": 13.5, "fat": 6.2, "carbs": 67.7}
+                ]}
+                """,
+                encoding="utf-8",
+            )
+            (root / "recipes.json").write_text(
+                """
+                {"recipes": [
+                  {"id": "oatmeal", "name": "Овсянка", "servings": 1,
+                   "ingredients": [{"productId": "oats", "amount": 50}],
+                   "steps": ["Залить кипятком"]}
+                ]}
+                """,
+                encoding="utf-8",
+            )
+            (root / "preps.json").write_text(
+                """
+                {"preps": [
+                  {"id": "batch", "name": "Овсянка", "recipeId": "oatmeal",
+                   "portionsTotal": 3, "portionsLeft": 2, "madeOn": "2026-10-07"}
+                ]}
+                """,
+                encoding="utf-8",
+            )
+            summary = io.StringIO()
+            with redirect_stdout(summary):
+                code = main(["summary"], root)
+            self.assertEqual(code, 0)
+            text = summary.getvalue()
+            self.assertIn("Овсянка - 80 г, мало (порог 200 г), 379 ккал / 100 г", text)
+            self.assertIn("Овсянка - 189,5 ккал на порцию", text)
+            self.assertIn("Овсянка - осталось 2 из 3, с 2026-10-07", text)
+
+            detail = io.StringIO()
+            with redirect_stdout(detail):
+                code = main(["recipe", "oatmeal"], root)
+            self.assertEqual(code, 0)
+            self.assertIn("1. Залить кипятком", detail.getvalue())
+
+            check = io.StringIO()
+            with redirect_stdout(check):
+                code = main(["check"], root)
+            self.assertEqual(code, 0)
+            self.assertIn("Данные в порядке.", check.getvalue())
+
+
+if __name__ == "__main__":
+    unittest.main()
