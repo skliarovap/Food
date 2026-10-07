@@ -207,9 +207,11 @@ class MenuTests(unittest.TestCase):
         self.assertEqual(meals_by_day["2026-10-07"], ["Обед", "Ужин"])
         self.assertEqual(meals_by_day["2026-10-08"], ["Завтрак", "Обед", "Ужин", "Перекус"])
         self.assertEqual(meals_by_day["2026-10-09"], ["Завтрак", "Обед", "Ужин", "Перекус"])
+        self.assertGreaterEqual(totals["2026-10-08"]["me"], 1600)
+        self.assertLessEqual(totals["2026-10-08"]["me"], 1700)
+        self.assertGreaterEqual(totals["2026-10-09"]["me"], 1450)
+        self.assertLessEqual(totals["2026-10-09"]["me"], 1550)
         for date in ("2026-10-08", "2026-10-09"):
-            self.assertGreaterEqual(totals[date]["me"], 1550)
-            self.assertLessEqual(totals[date]["me"], 1650)
             self.assertGreaterEqual(totals[date]["lesha"], 2450)
             self.assertLessEqual(totals[date]["lesha"], 2550)
         self.assertLess(totals["2026-10-07"]["me"], 1300)
@@ -223,6 +225,9 @@ class MenuTests(unittest.TestCase):
         self.assertIn("Филе форели 150 г", text)
         self.assertIn("Фаршированный перец 1 шт", text)
         self.assertIn("рыбу нельзя", text)
+        self.assertIn("1500 ккал, в день тренировки 1650", text)
+        self.assertIn("цель на день 1650", text)
+        self.assertIn("цель на день 1500", text)
 
 
 class PrepStockTests(unittest.TestCase):

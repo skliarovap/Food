@@ -4,9 +4,12 @@
     {
       "id": "me",
       "name": "Я",
-      "kcalTarget": 1600,
+      "kcalTarget": 1500,
+      "trainingKcalTarget": 1650,
       "weightKg": 55,
-      "goalWeightKg": 49
+      "heightCm": 158,
+      "goalWeightKg": 49,
+      "activity": "Прогулки с собакой 2-3 раза в день, танцы в понедельник и четверг, иногда тренировка дома."
     },
     {
       "id": "lesha",
@@ -111,6 +114,8 @@
     {
       "date": "2026-10-08",
       "title": "Четверг",
+      "training": ["me"],
+      "note": "Тренировка по танцам, цель выше обычной.",
       "meals": [
         {
           "name": "Завтрак",
@@ -159,6 +164,7 @@
             { "person": "me", "food": "tvorog", "grams": 180 },
             { "person": "me", "food": "berries", "grams": 50 },
             { "person": "me", "food": "honey", "grams": 8 },
+            { "person": "me", "food": "banana", "grams": 60 },
             { "person": "lesha", "food": "tvorog", "grams": 150 },
             { "person": "lesha", "food": "honey", "grams": 15 }
           ]
@@ -177,7 +183,7 @@
             { "person": "me", "food": "oats", "grams": 50 },
             { "person": "me", "food": "milk", "ml": 180 },
             { "person": "me", "food": "berries", "grams": 60 },
-            { "person": "me", "food": "almonds", "grams": 15 },
+            { "person": "me", "food": "almonds", "grams": 10 },
             { "person": "lesha", "food": "oats", "grams": 80 },
             { "person": "lesha", "food": "milk", "ml": 250 },
             { "person": "lesha", "food": "banana", "grams": 100 },
@@ -214,8 +220,8 @@
           "name": "Перекус",
           "dish": "Творог с мёдом",
           "servings": [
-            { "person": "me", "food": "tvorog", "grams": 200 },
-            { "person": "me", "food": "honey", "grams": 10 },
+            { "person": "me", "food": "tvorog", "grams": 150 },
+            { "person": "me", "food": "honey", "grams": 5 },
             { "person": "lesha", "food": "tvorog", "grams": 220 },
             { "person": "lesha", "food": "honey", "grams": 15 }
           ]

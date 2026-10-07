@@ -498,6 +498,14 @@ def validate_menu(menu: dict, data: dict | None = None) -> list[str]:
         target = _as_number(person.get("kcalTarget"), f"menu, человек {person_id or index}.kcalTarget", errors)
         if target is not None and target <= 0:
             errors.append(f"menu, человек {person_id}: kcalTarget должен быть больше нуля")
+        if person.get("trainingKcalTarget") is not None:
+            training_target = _as_number(
+                person.get("trainingKcalTarget"),
+                f"menu, человек {person_id or index}.trainingKcalTarget",
+                errors,
+            )
+            if training_target is not None and training_target <= 0:
+                errors.append(f"menu, человек {person_id}: trainingKcalTarget должен быть больше нуля")
         if person_id:
             if person_id in people_by_id:
                 errors.append(f"menu: повтор id {person_id}")
@@ -525,6 +533,13 @@ def validate_menu(menu: dict, data: dict | None = None) -> list[str]:
         label = f"menu, {day.get('title') or day.get('date') or 'день'}"
         _require_str(day, "date", label, errors)
         _require_str(day, "title", label, errors)
+        training = day.get("training") or []
+        if not isinstance(training, list):
+            errors.append(f"{label}: training должен быть списком")
+        else:
+            for person_id in training:
+                if person_id not in people_by_id:
+                    errors.append(f"{label}: в тренировке нет человека {person_id}")
         for meal in day.get("meals") or []:
             if not isinstance(meal, dict):
                 errors.append(f"{label}: приём пищи должен быть объектом")
@@ -569,18 +584,28 @@ def validate_menu(menu: dict, data: dict | None = None) -> list[str]:
     return errors
 
 
+def person_day_target(person: dict, day: dict) -> float:
+    if person["id"] in (day.get("training") or []) and person.get("trainingKcalTarget") is not None:
+        return float(person["trainingKcalTarget"])
+    return float(person["kcalTarget"])
+
+
 def render_menu(menu: dict, preps: list[dict] | None = None) -> str:
-    people = {person["id"]: person for person in menu["people"]}
     lines = ["Цели"]
     for person in menu["people"]:
         extra = ", рыбу нельзя" if "fish" in person.get("allergies", []) else ""
-        lines.append(f"  {person['name']}: {fmt(person['kcalTarget'])} ккал{extra}")
+        line = f"  {person['name']}: {fmt(person['kcalTarget'])} ккал{extra}"
+        if person.get("trainingKcalTarget") is not None:
+            line += f", в день тренировки {fmt(person['trainingKcalTarget'])}"
+        lines.append(line)
     if menu.get("note"):
         lines.append(menu["note"])
 
     for day in menu["days"]:
         lines.append("")
         lines.append(f"{day['title']}, {day['date']}")
+        if day.get("note"):
+            lines.append(f"  {day['note']}")
         day_kcal = {person["id"]: 0.0 for person in menu["people"]}
         day_estimated = {person["id"]: False for person in menu["people"]}
         for meal in day["meals"]:
@@ -610,7 +635,7 @@ def render_menu(menu: dict, preps: list[dict] | None = None) -> str:
         for person in menu["people"]:
             mark = "~" if day_estimated[person["id"]] else ""
             lines.append(
-                f"    {person['name']}: {mark}{fmt(day_kcal[person['id']])} ккал, цель на день {fmt(person['kcalTarget'])}"
+                f"    {person['name']}: {mark}{fmt(day_kcal[person['id']])} ккал, цель на день {fmt(person_day_target(person, day))}"
             )
 
     if preps is not None:
