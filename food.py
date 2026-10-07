@@ -584,6 +584,64 @@ def validate_menu(menu: dict, data: dict | None = None) -> list[str]:
     return errors
 
 
+MONTHS = (
+    "",
+    "января",
+    "февраля",
+    "марта",
+    "апреля",
+    "мая",
+    "июня",
+    "июля",
+    "августа",
+    "сентября",
+    "октября",
+    "ноября",
+    "декабря",
+)
+
+
+def cap_first(text: str) -> str:
+    if not text:
+        return text
+    return text[0].upper() + text[1:]
+
+
+def ru_plural(count: int, forms: list[str]) -> str:
+    number = abs(count) % 100
+    if 11 <= number <= 14:
+        word = forms[2]
+    else:
+        last = abs(count) % 10
+        if last == 1:
+            word = forms[0]
+        elif 2 <= last <= 4:
+            word = forms[1]
+        else:
+            word = forms[2]
+    return f"{count} {word}"
+
+
+def menu_item_text(food: dict, serving: dict) -> str:
+    if serving.get("pieces") is not None:
+        forms = food.get("plural")
+        count = int(round(float(serving["pieces"])))
+        if isinstance(forms, list) and len(forms) == 3:
+            return ru_plural(count, forms)
+        label = food.get("short") or food["name"]
+        return f"{label} {fmt(serving['pieces'])} шт"
+    label = food.get("short") or food["name"]
+    if serving.get("ml") is not None:
+        return f"{label} {fmt(serving['ml'])} мл"
+    return f"{label} {fmt(serving['grams'])} г"
+
+
+def format_menu_day(day: dict) -> str:
+    year, month, day_num = day["date"].split("-")
+    del year
+    return f"{day['title']}, {int(day_num)} {MONTHS[int(month)]}"
+
+
 def person_day_target(person: dict, day: dict) -> float:
     if person["id"] in (day.get("training") or []) and person.get("trainingKcalTarget") is not None:
         return float(person["trainingKcalTarget"])
@@ -591,10 +649,11 @@ def person_day_target(person: dict, day: dict) -> float:
 
 
 def render_menu(menu: dict, preps: list[dict] | None = None) -> str:
-    lines = ["Цели"]
+    lines = []
     for person in menu["people"]:
+        label = cap_first(person.get("menuLabel") or person["name"])
         extra = ", рыбу нельзя" if "fish" in person.get("allergies", []) else ""
-        line = f"  {person['name']}: {fmt(person['kcalTarget'])} ккал{extra}"
+        line = f"{label}: {fmt(person['kcalTarget'])} ккал{extra}"
         if person.get("trainingKcalTarget") is not None:
             line += f", в день тренировки {fmt(person['trainingKcalTarget'])}"
         lines.append(line)
@@ -603,53 +662,54 @@ def render_menu(menu: dict, preps: list[dict] | None = None) -> str:
 
     for day in menu["days"]:
         lines.append("")
-        lines.append(f"{day['title']}, {day['date']}")
+        lines.append(format_menu_day(day))
         if day.get("note"):
-            lines.append(f"  {day['note']}")
+            lines.append(day["note"])
         day_kcal = {person["id"]: 0.0 for person in menu["people"]}
         day_estimated = {person["id"]: False for person in menu["people"]}
         for meal in day["meals"]:
-            lines.append(f"  {meal['name']}. {meal['dish']}")
-            if meal.get("note"):
-                lines.append(f"    {meal['note']}")
             grouped: dict[str, list[dict]] = {}
             for serving in meal["servings"]:
                 grouped.setdefault(serving["person"], []).append(serving)
+            clauses = []
             for person in menu["people"]:
                 servings = grouped.get(person["id"])
                 if not servings:
                     continue
                 bits = []
-                kcal = 0.0
-                estimated = False
                 for serving in servings:
                     food = menu["foods"][serving["food"]]
-                    kcal += food_kcal(food, serving)
-                    estimated = estimated or bool(food.get("estimated"))
-                    bits.append(f"{food['name']} {serving_amount_text(serving)}")
-                day_kcal[person["id"]] += kcal
-                day_estimated[person["id"]] = day_estimated[person["id"]] or estimated
-                mark = "~" if estimated else ""
-                lines.append(f"    {person['name']}: {', '.join(bits)} - {mark}{fmt(kcal)} ккал")
-        lines.append("  Итого за эти приёмы:")
+                    day_kcal[person["id"]] += food_kcal(food, serving)
+                    day_estimated[person["id"]] = day_estimated[person["id"]] or bool(food.get("estimated"))
+                    bits.append(menu_item_text(food, serving))
+                label = person.get("menuLabel") or person["name"]
+                clauses.append(f"{label} {', '.join(bits)}")
+            lines.append(f"{meal['name']}: {'. '.join(clauses)}.")
+            if meal.get("note"):
+                lines.append(meal["note"])
+        totals = []
         for person in menu["people"]:
             mark = "~" if day_estimated[person["id"]] else ""
-            lines.append(
-                f"    {person['name']}: {mark}{fmt(day_kcal[person['id']])} ккал, цель на день {fmt(person_day_target(person, day))}"
+            label = person.get("menuLabel") or person["name"]
+            totals.append(
+                f"{label} {mark}{fmt(day_kcal[person['id']])} ккал, цель на день {fmt(person_day_target(person, day))}"
             )
+        lines.append(f"Итого: {'. '.join(totals)}.")
 
     if preps is not None:
         prep_by_id = index_by_id(preps)
-        lines.append("")
-        lines.append("Уйдёт из заготовок")
+        parts = []
         for prep_id, count in planned_prep_use(menu).items():
             prep = prep_by_id.get(prep_id, {})
             left = prep.get("portionsLeft")
             name = prep.get("name", prep_id)
             if left is None:
-                lines.append(f"  {name}: {fmt(count)} шт")
+                parts.append(f"{name} {fmt(count)} шт")
             else:
-                lines.append(f"  {name}: {fmt(count)} шт, останется {fmt(float(left) - count)}")
+                parts.append(f"{name} {fmt(count)} шт, останется {fmt(float(left) - count)}")
+        if parts:
+            lines.append("")
+            lines.append("Из заготовок уйдёт: " + "; ".join(parts) + ".")
     return "\n".join(lines)
 
 

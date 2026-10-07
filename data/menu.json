@@ -1,9 +1,10 @@
 {
-  "note": "Меню со среды 7 октября по пятницу 9 октября, суббота не входит. В среду только обед и ужин. Знак ~ означает, что в приёме есть заготовка без точного веса или без разложенной зажарки.",
+  "note": "Среда, четверг и пятница. В среду только обед и ужин. Знак ~ значит, что в итоге есть заготовка с ориентировочными калориями.",
   "people": [
     {
       "id": "me",
       "name": "Я",
+      "menuLabel": "тебе",
       "kcalTarget": 1500,
       "trainingKcalTarget": 1650,
       "weightKg": 55,
@@ -14,6 +15,7 @@
     {
       "id": "lesha",
       "name": "Леша",
+      "menuLabel": "Леше",
       "kcalTarget": 2500,
       "allergies": ["fish"]
     }
@@ -21,34 +23,41 @@
   "foods": {
     "trout": {
       "name": "Филе форели",
+      "short": "филе форели",
       "kcalPer100": 190,
       "fish": true,
       "note": "1 кусок принят за 150 г. Дома 3 куска, в меню уходит 1."
     },
-    "buckwheat": { "name": "Гречка отварная", "kcalPer100": 110 },
-    "salad": { "name": "Салат из огурца и помидора", "kcalPer100": 18 },
-    "oil": { "name": "Растительное масло", "kcalPer100": 899 },
+    "buckwheat": { "name": "Гречка отварная", "short": "гречка", "kcalPer100": 110 },
+    "salad": { "name": "Салат из огурца и помидора", "short": "салат", "kcalPer100": 18 },
+    "oil": { "name": "Растительное масло", "short": "масло", "kcalPer100": 899 },
     "stuffed-pepper": {
       "name": "Фаршированный перец",
+      "short": "фаршированный перец",
+      "plural": ["фаршированный перец", "фаршированных перца", "фаршированных перцев"],
       "kcalPerPiece": 300,
       "estimated": true,
       "prepId": "stuffed-peppers"
     },
-    "bread": { "name": "Хлеб", "kcalPer100": 249 },
-    "chicken-thigh": { "name": "Куриное бедро запечённое", "kcalPer100": 220 },
-    "roast-veg": { "name": "Запечённые овощи", "kcalPer100": 50 },
+    "bread": { "name": "Хлеб", "short": "хлеб", "kcalPer100": 249 },
+    "chicken-thigh": { "name": "Куриное бедро запечённое", "short": "куриное бедро", "kcalPer100": 220 },
+    "roast-veg": { "name": "Запечённые овощи", "short": "овощи", "kcalPer100": 50 },
     "syrniki": {
       "name": "Сырник",
+      "short": "сырник",
+      "plural": ["сырник", "сырника", "сырников"],
       "kcalPerPiece": 150,
       "estimated": true,
       "prepId": "syrniki"
     },
-    "sour-cream": { "name": "Сметана 15%", "kcalPer100": 160 },
-    "berries": { "name": "Ягоды", "kcalPer100": 40 },
-    "honey": { "name": "Мёд", "kcalPer100": 304 },
-    "banana": { "name": "Банан", "kcalPer100": 89 },
+    "sour-cream": { "name": "Сметана 15%", "short": "сметана", "kcalPer100": 160 },
+    "berries": { "name": "Ягоды", "short": "ягоды", "kcalPer100": 40 },
+    "honey": { "name": "Мёд", "short": "мёд", "kcalPer100": 304 },
+    "banana": { "name": "Банан", "short": "банан", "kcalPer100": 89 },
     "beef-cutlet": {
       "name": "Котлета говяжья",
+      "short": "говяжья котлета",
+      "plural": ["говяжья котлета", "говяжьи котлеты", "говяжьих котлет"],
       "kcalPerPiece": 240,
       "estimated": true,
       "prepId": "beef-cutlets",
@@ -56,20 +65,29 @@
     },
     "chicken-cutlet": {
       "name": "Куриная котлета в панко",
+      "short": "куриная котлета в панко",
+      "plural": ["куриная котлета в панко", "куриные котлеты в панко", "куриных котлет в панко"],
       "kcalPerPiece": 220,
       "estimated": true,
       "prepId": "chicken-cutlets"
     },
-    "mash": { "name": "Картофельное пюре", "kcalPer100": 110 },
-    "cucumber": { "name": "Огурец", "kcalPer100": 15 },
-    "tvorog": { "name": "Творог 5%", "kcalPer100": 121 },
-    "oats": { "name": "Овсянка сухая", "kcalPer100": 379 },
-    "milk": { "name": "Молоко 3,2%", "kcalPer100": 60 },
-    "almonds": { "name": "Миндаль", "kcalPer100": 579 },
-    "egg": { "name": "Яйцо", "kcalPerPiece": 86 },
-    "peanut-butter": { "name": "Арахисовая паста", "kcalPer100": 588 },
+    "mash": { "name": "Картофельное пюре", "short": "пюре", "kcalPer100": 110 },
+    "cucumber": { "name": "Огурец", "short": "огурец", "kcalPer100": 15 },
+    "tvorog": { "name": "Творог 5%", "short": "творог", "kcalPer100": 121 },
+    "oats": { "name": "Овсянка сухая", "short": "овсянка", "kcalPer100": 379 },
+    "milk": { "name": "Молоко 3,2%", "short": "молоко", "kcalPer100": 60 },
+    "almonds": { "name": "Миндаль", "short": "миндаль", "kcalPer100": 579 },
+    "egg": {
+      "name": "Яйцо",
+      "short": "яйцо",
+      "plural": ["яйцо", "яйца", "яиц"],
+      "kcalPerPiece": 86
+    },
+    "peanut-butter": { "name": "Арахисовая паста", "short": "арахисовая паста", "kcalPer100": 588 },
     "draniki": {
       "name": "Драник",
+      "short": "драник",
+      "plural": ["драник", "драника", "драников"],
       "kcalPerPiece": 160,
       "estimated": true,
       "prepId": "draniki"
@@ -83,7 +101,7 @@
         {
           "name": "Обед",
           "dish": "Форель с лимоном и фаршированный перец",
-          "note": "Форель готовить отдельно: Леше нельзя ни рыбу, ни масло с её сковороды. Ей 1 кусок из 3, вес куска принят за 150 г.",
+          "note": "Форель в отдельной посуде. Леше нельзя рыбу и масло с её сковороды. 1 кусок из 3, вес принят за 150 г.",
           "servings": [
             { "person": "me", "food": "trout", "grams": 150 },
             { "person": "me", "food": "buckwheat", "grams": 150 },
@@ -99,7 +117,6 @@
         {
           "name": "Ужин",
           "dish": "Куриные бедра с паприкой, чесноком и гречкой",
-          "note": "Одно блюдо на двоих, порции разные.",
           "servings": [
             { "person": "me", "food": "chicken-thigh", "grams": 150 },
             { "person": "me", "food": "roast-veg", "grams": 200 },
@@ -178,7 +195,6 @@
         {
           "name": "Завтрак",
           "dish": "Овсянка на молоке",
-          "note": "Одна каша на двоих. Леше больше крупы и молока и ещё яйцо с арахисовой пастой.",
           "servings": [
             { "person": "me", "food": "oats", "grams": 50 },
             { "person": "me", "food": "milk", "ml": 180 },
