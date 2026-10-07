@@ -175,6 +175,20 @@ class WaffleRecipeTests(unittest.TestCase):
         self.assertIn("13 вафель", text)
 
 
+class PrepStockTests(unittest.TestCase):
+    def test_saved_prep_stock(self):
+        summary = io.StringIO()
+        with redirect_stdout(summary):
+            code = main(["preps"])
+        self.assertEqual(code, 0)
+        text = summary.getvalue()
+        self.assertIn("Драники - 10 шт", text)
+        self.assertIn("Котлеты говяжьи - 4 шт по 100 г, 1 пачка по 4", text)
+        self.assertIn("Сырники - 36 шт, 6 пачек по 6", text)
+        self.assertIn("Куриные котлеты в панко - 16 шт по 100 г, 4 пачки по 4", text)
+        self.assertIn("Фаршированные перцы - 7 шт", text)
+
+
 class CliTests(unittest.TestCase):
     def test_summary_of_sample_files(self):
         with tempfile.TemporaryDirectory() as tmp:

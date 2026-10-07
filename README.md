@@ -75,4 +75,4 @@ python3 food.py check
 }
 ```
 
-`recipeId` и `madeOn` необязательны. Дата в формате `ГГГГ-ММ-ДД`.
+`recipeId`, `madeOn`, `portionsTotal`, `packSize` и `pieceWeightG` необязательны. Если исходный размер партии неизвестен, `portionsTotal` можно не писать: в сводке будет только то, сколько есть сейчас. `packSize` - штук в пачке, `pieceWeightG` - вес одной штуки в граммах. Дата в формате `ГГГГ-ММ-ДД`.

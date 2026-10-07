@@ -1,3 +1,37 @@
 {
-  "preps": []
+  "preps": [
+    {
+      "id": "draniki",
+      "name": "Драники",
+      "portionsLeft": 10
+    },
+    {
+      "id": "beef-cutlets",
+      "name": "Котлеты говяжьи",
+      "portionsLeft": 4,
+      "packSize": 4,
+      "pieceWeightG": 100,
+      "notes": "Пока записана 1 пачка. Около 20 г из 100 г - зажарка из моркови, лука и масла."
+    },
+    {
+      "id": "syrniki",
+      "name": "Сырники",
+      "portionsLeft": 36,
+      "packSize": 6
+    },
+    {
+      "id": "chicken-cutlets",
+      "name": "Куриные котлеты в панко",
+      "portionsLeft": 16,
+      "packSize": 4,
+      "pieceWeightG": 100,
+      "notes": "Сухари панко. Около 20 г из 100 г - зажарка из моркови, лука и масла, как у говяжьих котлет."
+    },
+    {
+      "id": "stuffed-peppers",
+      "name": "Фаршированные перцы",
+      "portionsLeft": 7,
+      "notes": "Говяжий фарш."
+    }
+  ]
 }

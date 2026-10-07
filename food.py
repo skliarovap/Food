@@ -158,7 +158,10 @@ def validate(data: dict) -> list[str]:
         label = f"заготовка {prep.get('id') or index}"
         _require_str(prep, "id", label, errors)
         _require_str(prep, "name", label, errors)
-        total = _as_number(prep.get("portionsTotal"), f"{label}.portionsTotal", errors)
+        if prep.get("portionsTotal") is None:
+            total = None
+        else:
+            total = _as_number(prep.get("portionsTotal"), f"{label}.portionsTotal", errors)
         left = _as_number(prep.get("portionsLeft"), f"{label}.portionsLeft", errors)
         if total is not None and total <= 0:
             errors.append(f"{label}: portionsTotal должен быть больше нуля")
@@ -166,6 +169,12 @@ def validate(data: dict) -> list[str]:
             errors.append(f"{label}: portionsLeft не может быть отрицательным")
         if total is not None and left is not None and left > total:
             errors.append(f"{label}: portionsLeft больше portionsTotal")
+        for key in ("packSize", "pieceWeightG"):
+            if prep.get(key) is None:
+                continue
+            value = _as_number(prep.get(key), f"{label}.{key}", errors)
+            if value is not None and value <= 0:
+                errors.append(f"{label}: {key} должен быть больше нуля")
         recipe_id = prep.get("recipeId")
         if recipe_id is not None:
             if not isinstance(recipe_id, str) or not recipe_id.strip():
@@ -293,6 +302,18 @@ def recipe_lines(recipes: list[dict], products_by_id: dict[str, dict]) -> list[s
     return lines
 
 
+def pack_word(count: int) -> str:
+    number = abs(count) % 100
+    if 11 <= number <= 14:
+        return "пачек"
+    last = number % 10
+    if last == 1:
+        return "пачка"
+    if 2 <= last <= 4:
+        return "пачки"
+    return "пачек"
+
+
 def prep_lines(preps: list[dict]) -> list[str]:
     if not preps:
         return ["Пока пусто."]
@@ -300,7 +321,20 @@ def prep_lines(preps: list[dict]) -> list[str]:
     for prep in preps:
         left = prep.get("portionsLeft")
         total = prep.get("portionsTotal")
-        text = f"{prep.get('name')} - осталось {fmt(left)} из {fmt(total)}"
+        if total is None:
+            text = f"{prep.get('name')} - {fmt(left)} шт"
+        else:
+            text = f"{prep.get('name')} - осталось {fmt(left)} из {fmt(total)}"
+        if prep.get("pieceWeightG") is not None:
+            text += f" по {fmt(prep['pieceWeightG'])} г"
+        pack = prep.get("packSize")
+        if pack is not None and left is not None and float(pack) > 0:
+            packs = float(left) / float(pack)
+            if abs(packs - round(packs)) < 1e-9:
+                pack_count = int(round(packs))
+                text += f", {fmt(pack_count)} {pack_word(pack_count)} по {fmt(pack)}"
+            else:
+                text += f", в пачке по {fmt(pack)}"
         if prep.get("madeOn"):
             text += f", с {prep['madeOn']}"
         lines.append(text)
