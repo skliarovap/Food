@@ -7,6 +7,7 @@
 - `data/products.json` - что есть дома и пищевая ценность
 - `data/recipes.json` - сохранённые рецепты
 - `data/preps.json` - заготовки и сколько порций осталось
+- `data/menu.json` - меню и порции на двоих
 
 Калории продукта задаются на 100 г, на 100 мл или на 1 штуку. В рецепте количество указано в тех же единицах: граммы, миллилитры или штуки.
 
@@ -18,6 +19,7 @@ python3 food.py products
 python3 food.py recipes
 python3 food.py preps
 python3 food.py recipe <id>
+python3 food.py menu
 python3 food.py check
 ```
 

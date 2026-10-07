@@ -4,7 +4,17 @@ import unittest
 from contextlib import redirect_stdout
 from pathlib import Path
 
-from food import compute_recipe_nutrition, index_by_id, load_all, main, scale_nutrient, validate
+from food import (
+    compute_recipe_nutrition,
+    food_kcal,
+    index_by_id,
+    load_all,
+    load_menu,
+    main,
+    scale_nutrient,
+    validate,
+    validate_menu,
+)
 
 
 OATS = {
@@ -173,6 +183,46 @@ class WaffleRecipeTests(unittest.TestCase):
         self.assertIn("Разрыхлитель - 5 г (1 ч. л.)", text)
         self.assertIn("359,2 ккал на порцию", text)
         self.assertIn("13 вафель", text)
+
+
+class MenuTests(unittest.TestCase):
+    def test_menu_targets_and_fish_allergy(self):
+        root = Path(__file__).resolve().parent
+        data = load_all(root / "data")
+        menu = load_menu(root / "data")
+        self.assertEqual(validate_menu(menu, data), [])
+
+        totals = {}
+        meals_by_day = {}
+        for day in menu["days"]:
+            meals_by_day[day["date"]] = [meal["name"] for meal in day["meals"]]
+            totals[day["date"]] = {person["id"]: 0.0 for person in menu["people"]}
+            for meal in day["meals"]:
+                for serving in meal["servings"]:
+                    food = menu["foods"][serving["food"]]
+                    if serving["person"] == "lesha":
+                        self.assertFalse(food.get("fish"))
+                    totals[day["date"]][serving["person"]] += food_kcal(food, serving)
+
+        self.assertEqual(meals_by_day["2026-10-07"], ["Обед", "Ужин"])
+        self.assertEqual(meals_by_day["2026-10-08"], ["Завтрак", "Обед", "Ужин", "Перекус"])
+        self.assertEqual(meals_by_day["2026-10-09"], ["Завтрак", "Обед", "Ужин", "Перекус"])
+        for date in ("2026-10-08", "2026-10-09"):
+            self.assertGreaterEqual(totals[date]["me"], 1550)
+            self.assertLessEqual(totals[date]["me"], 1650)
+            self.assertGreaterEqual(totals[date]["lesha"], 2450)
+            self.assertLessEqual(totals[date]["lesha"], 2550)
+        self.assertLess(totals["2026-10-07"]["me"], 1300)
+        self.assertLess(totals["2026-10-07"]["lesha"], 1900)
+
+        output = io.StringIO()
+        with redirect_stdout(output):
+            code = main(["menu"])
+        self.assertEqual(code, 0)
+        text = output.getvalue()
+        self.assertIn("Филе форели 150 г", text)
+        self.assertIn("Фаршированный перец 1 шт", text)
+        self.assertIn("рыбу нельзя", text)
 
 
 class PrepStockTests(unittest.TestCase):

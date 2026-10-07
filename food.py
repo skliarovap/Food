@@ -443,13 +443,198 @@ def render_recipe(recipe: dict, products_by_id: dict[str, dict]) -> str:
     return "\n".join(lines)
 
 
+def load_menu(data_dir: Path = DATA) -> dict:
+    return load_json(data_dir / "menu.json")
+
+
+def food_kcal(food: dict, serving: dict) -> float:
+    if food.get("kcalPerPiece") is not None:
+        return float(food["kcalPerPiece"]) * float(serving["pieces"])
+    amount = serving.get("grams", serving.get("ml"))
+    return float(food["kcalPer100"]) * float(amount) / 100.0
+
+
+def serving_amount_text(serving: dict) -> str:
+    if serving.get("pieces") is not None:
+        return f"{fmt(serving['pieces'])} шт"
+    if serving.get("ml") is not None:
+        return f"{fmt(serving['ml'])} мл"
+    return f"{fmt(serving['grams'])} г"
+
+
+def planned_prep_use(menu: dict) -> dict[str, float]:
+    used: dict[str, float] = {}
+    foods = menu.get("foods") or {}
+    for day in menu.get("days") or []:
+        for meal in day.get("meals") or []:
+            for serving in meal.get("servings") or []:
+                food = foods.get(serving.get("food"))
+                prep_id = food.get("prepId") if isinstance(food, dict) else None
+                if not prep_id or serving.get("pieces") is None:
+                    continue
+                used[prep_id] = used.get(prep_id, 0.0) + float(serving["pieces"])
+    return used
+
+
+def validate_menu(menu: dict, data: dict | None = None) -> list[str]:
+    errors: list[str] = []
+    people = menu.get("people")
+    foods = menu.get("foods")
+    days = menu.get("days")
+    if not isinstance(people, list) or not people:
+        return ["menu.people: ожидался непустой список"]
+    if not isinstance(foods, dict):
+        return ["menu.foods: ожидался объект"]
+    if not isinstance(days, list) or not days:
+        return ["menu.days: ожидался непустой список"]
+
+    people_by_id: dict[str, dict] = {}
+    for index, person in enumerate(people, start=1):
+        if not isinstance(person, dict):
+            errors.append(f"menu, человек #{index}: ожидался объект")
+            continue
+        person_id = _require_str(person, "id", f"menu, человек #{index}", errors)
+        _require_str(person, "name", f"menu, человек {person_id or index}", errors)
+        target = _as_number(person.get("kcalTarget"), f"menu, человек {person_id or index}.kcalTarget", errors)
+        if target is not None and target <= 0:
+            errors.append(f"menu, человек {person_id}: kcalTarget должен быть больше нуля")
+        if person_id:
+            if person_id in people_by_id:
+                errors.append(f"menu: повтор id {person_id}")
+            people_by_id[person_id] = person
+
+    for food_id, food in foods.items():
+        if not isinstance(food, dict):
+            errors.append(f"menu, продукт {food_id}: ожидался объект")
+            continue
+        _require_str(food, "name", f"menu, продукт {food_id}", errors)
+        per_piece = food.get("kcalPerPiece")
+        per_100 = food.get("kcalPer100")
+        if per_piece is None and per_100 is None:
+            errors.append(f"menu, продукт {food_id}: нужна калорийность")
+        if per_piece is not None and per_piece <= 0:
+            errors.append(f"menu, продукт {food_id}: kcalPerPiece должен быть больше нуля")
+        if per_100 is not None and per_100 < 0:
+            errors.append(f"menu, продукт {food_id}: kcalPer100 не может быть отрицательным")
+
+    preps = index_by_id(data["preps"]) if data else {}
+    for day in days:
+        if not isinstance(day, dict):
+            errors.append("menu: день должен быть объектом")
+            continue
+        label = f"menu, {day.get('title') or day.get('date') or 'день'}"
+        _require_str(day, "date", label, errors)
+        _require_str(day, "title", label, errors)
+        for meal in day.get("meals") or []:
+            if not isinstance(meal, dict):
+                errors.append(f"{label}: приём пищи должен быть объектом")
+                continue
+            meal_label = f"{label}, {meal.get('name') or 'приём'}"
+            for index, serving in enumerate(meal.get("servings") or [], start=1):
+                serving_label = f"{meal_label}, порция #{index}"
+                if not isinstance(serving, dict):
+                    errors.append(f"{serving_label}: ожидался объект")
+                    continue
+                person_id = serving.get("person")
+                person = people_by_id.get(person_id)
+                if person is None:
+                    errors.append(f"{serving_label}: нет человека {person_id}")
+                food = foods.get(serving.get("food"))
+                if not isinstance(food, dict):
+                    errors.append(f"{serving_label}: нет продукта {serving.get('food')}")
+                    continue
+                has_pieces = serving.get("pieces") is not None
+                has_amount = serving.get("grams") is not None or serving.get("ml") is not None
+                if food.get("kcalPerPiece") is not None and not has_pieces:
+                    errors.append(f"{serving_label}: нужны штуки")
+                if food.get("kcalPerPiece") is None and not has_amount:
+                    errors.append(f"{serving_label}: нужны граммы или миллилитры")
+                if person and food.get("fish") and "fish" in person.get("allergies", []):
+                    errors.append(f"{serving_label}: {person.get('name')} нельзя рыбу")
+                prep_id = food.get("prepId")
+                if prep_id and data is not None and prep_id not in preps:
+                    errors.append(f"{serving_label}: нет заготовки {prep_id}")
+
+    if data is not None:
+        preps = index_by_id(data["preps"])
+        for prep_id, count in planned_prep_use(menu).items():
+            prep = preps.get(prep_id)
+            if prep is None:
+                continue
+            left = prep.get("portionsLeft")
+            if left is not None and count - float(left) > 1e-9:
+                errors.append(
+                    f"menu: {prep.get('name')} в меню {fmt(count)} шт, в запасе {fmt(left)}"
+                )
+    return errors
+
+
+def render_menu(menu: dict, preps: list[dict] | None = None) -> str:
+    people = {person["id"]: person for person in menu["people"]}
+    lines = ["Цели"]
+    for person in menu["people"]:
+        extra = ", рыбу нельзя" if "fish" in person.get("allergies", []) else ""
+        lines.append(f"  {person['name']}: {fmt(person['kcalTarget'])} ккал{extra}")
+    if menu.get("note"):
+        lines.append(menu["note"])
+
+    for day in menu["days"]:
+        lines.append("")
+        lines.append(f"{day['title']}, {day['date']}")
+        day_kcal = {person["id"]: 0.0 for person in menu["people"]}
+        day_estimated = {person["id"]: False for person in menu["people"]}
+        for meal in day["meals"]:
+            lines.append(f"  {meal['name']}. {meal['dish']}")
+            if meal.get("note"):
+                lines.append(f"    {meal['note']}")
+            grouped: dict[str, list[dict]] = {}
+            for serving in meal["servings"]:
+                grouped.setdefault(serving["person"], []).append(serving)
+            for person in menu["people"]:
+                servings = grouped.get(person["id"])
+                if not servings:
+                    continue
+                bits = []
+                kcal = 0.0
+                estimated = False
+                for serving in servings:
+                    food = menu["foods"][serving["food"]]
+                    kcal += food_kcal(food, serving)
+                    estimated = estimated or bool(food.get("estimated"))
+                    bits.append(f"{food['name']} {serving_amount_text(serving)}")
+                day_kcal[person["id"]] += kcal
+                day_estimated[person["id"]] = day_estimated[person["id"]] or estimated
+                mark = "~" if estimated else ""
+                lines.append(f"    {person['name']}: {', '.join(bits)} - {mark}{fmt(kcal)} ккал")
+        lines.append("  Итого за эти приёмы:")
+        for person in menu["people"]:
+            mark = "~" if day_estimated[person["id"]] else ""
+            lines.append(
+                f"    {person['name']}: {mark}{fmt(day_kcal[person['id']])} ккал, цель на день {fmt(person['kcalTarget'])}"
+            )
+
+    if preps is not None:
+        prep_by_id = index_by_id(preps)
+        lines.append("")
+        lines.append("Уйдёт из заготовок")
+        for prep_id, count in planned_prep_use(menu).items():
+            prep = prep_by_id.get(prep_id, {})
+            left = prep.get("portionsLeft")
+            name = prep.get("name", prep_id)
+            if left is None:
+                lines.append(f"  {name}: {fmt(count)} шт")
+            else:
+                lines.append(f"  {name}: {fmt(count)} шт, останется {fmt(float(left) - count)}")
+    return "\n".join(lines)
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Учёт продуктов, рецептов и заготовок")
     parser.add_argument(
         "command",
         nargs="?",
         default="summary",
-        choices=("summary", "products", "recipes", "preps", "recipe", "check"),
+        choices=("summary", "products", "recipes", "preps", "recipe", "menu", "check"),
     )
     parser.add_argument("recipe_id", nargs="?")
     return parser
@@ -467,6 +652,15 @@ def main(argv: list[str] | None = None, data_dir: Path = DATA) -> int:
         print(str(exc), file=sys.stderr)
         return 1
     errors = validate(data)
+    menu = None
+    menu_path = data_dir / "menu.json"
+    if menu_path.exists():
+        try:
+            menu = load_menu(data_dir)
+        except DataError as exc:
+            errors.append(str(exc))
+        else:
+            errors.extend(validate_menu(menu, data))
     if args.command == "check":
         if errors:
             print("\n".join(errors))
@@ -485,6 +679,11 @@ def main(argv: list[str] | None = None, data_dir: Path = DATA) -> int:
         print("\n".join(recipe_lines(data["recipes"], products_by_id)))
     elif args.command == "preps":
         print("\n".join(prep_lines(data["preps"])))
+    elif args.command == "menu":
+        if menu is None:
+            print("Нет файла menu.json", file=sys.stderr)
+            return 1
+        print(render_menu(menu, data["preps"]))
     elif args.command == "recipe":
         recipes = index_by_id(data["recipes"])
         recipe = recipes.get(args.recipe_id)
