@@ -175,6 +175,9 @@ def validate(data: dict) -> list[str]:
             value = _as_number(prep.get(key), f"{label}.{key}", errors)
             if value is not None and value <= 0:
                 errors.append(f"{label}: {key} должен быть больше нуля")
+        packed = _validate_packs(prep, label, errors)
+        if packed is not None and left is not None and abs(packed - left) > 1e-9:
+            errors.append(f"{label}: в пачках {fmt(packed)} шт, а portionsLeft равен {fmt(left)}")
         recipe_id = prep.get("recipeId")
         if recipe_id is not None:
             if not isinstance(recipe_id, str) or not recipe_id.strip():
@@ -302,6 +305,38 @@ def recipe_lines(recipes: list[dict], products_by_id: dict[str, dict]) -> list[s
     return lines
 
 
+def _validate_packs(prep: dict, label: str, errors: list[str]) -> float | None:
+    packs = prep.get("packs")
+    if packs is None:
+        return None
+    if prep.get("packSize") is not None:
+        errors.append(f"{label}: укажи packs или packSize")
+    if not isinstance(packs, list) or not packs:
+        errors.append(f"{label}: packs должен быть непустым списком")
+        return None
+    total = 0.0
+    complete = True
+    for index, group in enumerate(packs, start=1):
+        group_label = f"{label}, пачки #{index}"
+        if not isinstance(group, dict):
+            errors.append(f"{group_label}: ожидался объект")
+            complete = False
+            continue
+        count = _as_number(group.get("count"), f"{group_label}.count", errors)
+        size = _as_number(group.get("size"), f"{group_label}.size", errors)
+        if count is not None and count <= 0:
+            errors.append(f"{group_label}: count должен быть больше нуля")
+        if size is not None and size <= 0:
+            errors.append(f"{group_label}: size должен быть больше нуля")
+        if count is None or size is None or count <= 0 or size <= 0:
+            complete = False
+            continue
+        total += count * size
+    if not complete:
+        return None
+    return total
+
+
 def pack_word(count: int) -> str:
     number = abs(count) % 100
     if 11 <= number <= 14:
@@ -312,6 +347,28 @@ def pack_word(count: int) -> str:
     if 2 <= last <= 4:
         return "пачки"
     return "пачек"
+
+
+def format_pack_text(prep: dict, left) -> str:
+    groups = prep.get("packs")
+    if isinstance(groups, list) and groups:
+        parts = []
+        for group in groups:
+            if not isinstance(group, dict):
+                continue
+            count = int(round(float(group["count"])))
+            parts.append(f"{fmt(count)} {pack_word(count)} по {fmt(group['size'])}")
+        if len(parts) == 1:
+            return parts[0]
+        return ", ".join(parts[:-1]) + " и " + parts[-1]
+    pack = prep.get("packSize")
+    if pack is None or left is None or float(pack) <= 0:
+        return ""
+    packs = float(left) / float(pack)
+    if abs(packs - round(packs)) < 1e-9:
+        pack_count = int(round(packs))
+        return f"{fmt(pack_count)} {pack_word(pack_count)} по {fmt(pack)}"
+    return f"в пачке по {fmt(pack)}"
 
 
 def prep_lines(preps: list[dict]) -> list[str]:
@@ -327,14 +384,9 @@ def prep_lines(preps: list[dict]) -> list[str]:
             text = f"{prep.get('name')} - осталось {fmt(left)} из {fmt(total)}"
         if prep.get("pieceWeightG") is not None:
             text += f" по {fmt(prep['pieceWeightG'])} г"
-        pack = prep.get("packSize")
-        if pack is not None and left is not None and float(pack) > 0:
-            packs = float(left) / float(pack)
-            if abs(packs - round(packs)) < 1e-9:
-                pack_count = int(round(packs))
-                text += f", {fmt(pack_count)} {pack_word(pack_count)} по {fmt(pack)}"
-            else:
-                text += f", в пачке по {fmt(pack)}"
+        pack_text = format_pack_text(prep, left)
+        if pack_text:
+            text += f", {pack_text}"
         if prep.get("madeOn"):
             text += f", с {prep['madeOn']}"
         lines.append(text)

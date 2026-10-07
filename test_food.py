@@ -183,7 +183,7 @@ class PrepStockTests(unittest.TestCase):
         self.assertEqual(code, 0)
         text = summary.getvalue()
         self.assertIn("Драники - 10 шт", text)
-        self.assertIn("Котлеты говяжьи - 4 шт по 100 г, 1 пачка по 4", text)
+        self.assertIn("Котлеты говяжьи - 22 шт по 100 г, 5 пачек по 4 и 1 пачка по 2", text)
         self.assertIn("Сырники - 36 шт, 6 пачек по 6", text)
         self.assertIn("Куриные котлеты в панко - 16 шт по 100 г, 4 пачки по 4", text)
         self.assertIn("Фаршированные перцы - 7 шт", text)

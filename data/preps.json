@@ -8,10 +8,13 @@
     {
       "id": "beef-cutlets",
       "name": "Котлеты говяжьи",
-      "portionsLeft": 4,
-      "packSize": 4,
+      "portionsLeft": 22,
       "pieceWeightG": 100,
-      "notes": "Пока записана 1 пачка. Около 20 г из 100 г - зажарка из моркови, лука и масла."
+      "packs": [
+        { "count": 5, "size": 4 },
+        { "count": 1, "size": 2 }
+      ],
+      "notes": "Около 20 г из 100 г - зажарка из моркови, лука и масла."
     },
     {
       "id": "syrniki",
