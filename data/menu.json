@@ -1,0 +1,248 @@
+{
+  "note": "Среда, четверг и пятница. В среду только обед и ужин. Знак ~ значит, что в итоге есть заготовка с ориентировочными калориями.",
+  "people": [
+    {
+      "id": "me",
+      "name": "Я",
+      "menuLabel": "тебе",
+      "kcalTarget": 1500,
+      "trainingKcalTarget": 1650,
+      "weightKg": 55,
+      "heightCm": 158,
+      "goalWeightKg": 49,
+      "activity": "Прогулки с собакой 2-3 раза в день, танцы в понедельник и четверг, иногда тренировка дома."
+    },
+    {
+      "id": "lesha",
+      "name": "Леша",
+      "menuLabel": "Леше",
+      "kcalTarget": 2500,
+      "allergies": ["fish"]
+    }
+  ],
+  "foods": {
+    "trout": {
+      "name": "Филе форели",
+      "short": "филе форели",
+      "kcalPer100": 190,
+      "fish": true,
+      "note": "1 кусок принят за 150 г. Дома 3 куска, в меню уходит 1."
+    },
+    "buckwheat": { "name": "Гречка отварная", "short": "гречка", "kcalPer100": 110 },
+    "salad": { "name": "Салат из огурца и помидора", "short": "салат", "kcalPer100": 18 },
+    "oil": { "name": "Растительное масло", "short": "масло", "kcalPer100": 899 },
+    "stuffed-pepper": {
+      "name": "Фаршированный перец",
+      "short": "фаршированный перец",
+      "plural": ["фаршированный перец", "фаршированных перца", "фаршированных перцев"],
+      "kcalPerPiece": 300,
+      "estimated": true,
+      "prepId": "stuffed-peppers"
+    },
+    "bread": { "name": "Хлеб", "short": "хлеб", "kcalPer100": 249 },
+    "chicken-thigh": { "name": "Куриное бедро запечённое", "short": "куриное бедро", "kcalPer100": 220 },
+    "roast-veg": { "name": "Запечённые овощи", "short": "овощи", "kcalPer100": 50 },
+    "syrniki": {
+      "name": "Сырник",
+      "short": "сырник",
+      "plural": ["сырник", "сырника", "сырников"],
+      "kcalPerPiece": 150,
+      "estimated": true,
+      "prepId": "syrniki"
+    },
+    "sour-cream": { "name": "Сметана 15%", "short": "сметана", "kcalPer100": 160 },
+    "berries": { "name": "Ягоды", "short": "ягоды", "kcalPer100": 40 },
+    "honey": { "name": "Мёд", "short": "мёд", "kcalPer100": 304 },
+    "banana": { "name": "Банан", "short": "банан", "kcalPer100": 89 },
+    "beef-cutlet": {
+      "name": "Котлета говяжья",
+      "short": "говяжья котлета",
+      "plural": ["говяжья котлета", "говяжьи котлеты", "говяжьих котлет"],
+      "kcalPerPiece": 240,
+      "estimated": true,
+      "prepId": "beef-cutlets",
+      "note": "100 г, из них около 20 г зажарки."
+    },
+    "chicken-cutlet": {
+      "name": "Куриная котлета в панко",
+      "short": "куриная котлета в панко",
+      "plural": ["куриная котлета в панко", "куриные котлеты в панко", "куриных котлет в панко"],
+      "kcalPerPiece": 220,
+      "estimated": true,
+      "prepId": "chicken-cutlets"
+    },
+    "mash": { "name": "Картофельное пюре", "short": "пюре", "kcalPer100": 110 },
+    "cucumber": { "name": "Огурец", "short": "огурец", "kcalPer100": 15 },
+    "tvorog": { "name": "Творог 5%", "short": "творог", "kcalPer100": 121 },
+    "oats": { "name": "Овсянка сухая", "short": "овсянка", "kcalPer100": 379 },
+    "milk": { "name": "Молоко 3,2%", "short": "молоко", "kcalPer100": 60 },
+    "almonds": { "name": "Миндаль", "short": "миндаль", "kcalPer100": 579 },
+    "egg": {
+      "name": "Яйцо",
+      "short": "яйцо",
+      "plural": ["яйцо", "яйца", "яиц"],
+      "kcalPerPiece": 86
+    },
+    "peanut-butter": { "name": "Арахисовая паста", "short": "арахисовая паста", "kcalPer100": 588 },
+    "draniki": {
+      "name": "Драник",
+      "short": "драник",
+      "plural": ["драник", "драника", "драников"],
+      "kcalPerPiece": 160,
+      "estimated": true,
+      "prepId": "draniki"
+    }
+  },
+  "days": [
+    {
+      "date": "2026-10-07",
+      "title": "Среда",
+      "meals": [
+        {
+          "name": "Обед",
+          "dish": "Форель с лимоном и фаршированный перец",
+          "note": "Форель в отдельной посуде. Леше нельзя рыбу и масло с её сковороды. 1 кусок из 3, вес принят за 150 г.",
+          "servings": [
+            { "person": "me", "food": "trout", "grams": 150 },
+            { "person": "me", "food": "buckwheat", "grams": 150 },
+            { "person": "me", "food": "salad", "grams": 150 },
+            { "person": "me", "food": "oil", "grams": 5 },
+            { "person": "lesha", "food": "stuffed-pepper", "pieces": 1 },
+            { "person": "lesha", "food": "buckwheat", "grams": 250 },
+            { "person": "lesha", "food": "salad", "grams": 200 },
+            { "person": "lesha", "food": "oil", "grams": 10 },
+            { "person": "lesha", "food": "bread", "grams": 50 }
+          ]
+        },
+        {
+          "name": "Ужин",
+          "dish": "Куриные бедра с паприкой, чесноком и гречкой",
+          "servings": [
+            { "person": "me", "food": "chicken-thigh", "grams": 150 },
+            { "person": "me", "food": "roast-veg", "grams": 200 },
+            { "person": "me", "food": "buckwheat", "grams": 80 },
+            { "person": "lesha", "food": "chicken-thigh", "grams": 260 },
+            { "person": "lesha", "food": "roast-veg", "grams": 250 },
+            { "person": "lesha", "food": "buckwheat", "grams": 150 }
+          ]
+        }
+      ]
+    },
+    {
+      "date": "2026-10-08",
+      "title": "Четверг",
+      "training": ["me"],
+      "note": "Тренировка по танцам, цель выше обычной.",
+      "meals": [
+        {
+          "name": "Завтрак",
+          "dish": "Сырники со сметаной",
+          "servings": [
+            { "person": "me", "food": "syrniki", "pieces": 2 },
+            { "person": "me", "food": "sour-cream", "grams": 20 },
+            { "person": "me", "food": "berries", "grams": 80 },
+            { "person": "me", "food": "honey", "grams": 10 },
+            { "person": "lesha", "food": "syrniki", "pieces": 3 },
+            { "person": "lesha", "food": "sour-cream", "grams": 30 },
+            { "person": "lesha", "food": "banana", "grams": 130 },
+            { "person": "lesha", "food": "honey", "grams": 15 }
+          ]
+        },
+        {
+          "name": "Обед",
+          "dish": "Говяжьи котлеты с гречкой",
+          "servings": [
+            { "person": "me", "food": "beef-cutlet", "pieces": 1 },
+            { "person": "me", "food": "buckwheat", "grams": 170 },
+            { "person": "me", "food": "salad", "grams": 120 },
+            { "person": "me", "food": "oil", "grams": 5 },
+            { "person": "lesha", "food": "beef-cutlet", "pieces": 2 },
+            { "person": "lesha", "food": "buckwheat", "grams": 230 },
+            { "person": "lesha", "food": "salad", "grams": 180 },
+            { "person": "lesha", "food": "oil", "grams": 8 }
+          ]
+        },
+        {
+          "name": "Ужин",
+          "dish": "Куриные котлеты в панко с пюре",
+          "servings": [
+            { "person": "me", "food": "chicken-cutlet", "pieces": 1 },
+            { "person": "me", "food": "mash", "grams": 200 },
+            { "person": "me", "food": "cucumber", "grams": 80 },
+            { "person": "lesha", "food": "chicken-cutlet", "pieces": 2 },
+            { "person": "lesha", "food": "mash", "grams": 280 },
+            { "person": "lesha", "food": "cucumber", "grams": 100 }
+          ]
+        },
+        {
+          "name": "Перекус",
+          "dish": "Творог",
+          "servings": [
+            { "person": "me", "food": "tvorog", "grams": 180 },
+            { "person": "me", "food": "berries", "grams": 50 },
+            { "person": "me", "food": "honey", "grams": 8 },
+            { "person": "me", "food": "banana", "grams": 60 },
+            { "person": "lesha", "food": "tvorog", "grams": 150 },
+            { "person": "lesha", "food": "honey", "grams": 15 }
+          ]
+        }
+      ]
+    },
+    {
+      "date": "2026-10-09",
+      "title": "Пятница",
+      "meals": [
+        {
+          "name": "Завтрак",
+          "dish": "Овсянка на молоке",
+          "servings": [
+            { "person": "me", "food": "oats", "grams": 50 },
+            { "person": "me", "food": "milk", "ml": 180 },
+            { "person": "me", "food": "berries", "grams": 60 },
+            { "person": "me", "food": "almonds", "grams": 10 },
+            { "person": "lesha", "food": "oats", "grams": 80 },
+            { "person": "lesha", "food": "milk", "ml": 250 },
+            { "person": "lesha", "food": "banana", "grams": 100 },
+            { "person": "lesha", "food": "egg", "pieces": 1 },
+            { "person": "lesha", "food": "peanut-butter", "grams": 10 }
+          ]
+        },
+        {
+          "name": "Обед",
+          "dish": "Фаршированные перцы с гречкой",
+          "servings": [
+            { "person": "me", "food": "stuffed-pepper", "pieces": 1 },
+            { "person": "me", "food": "buckwheat", "grams": 150 },
+            { "person": "me", "food": "salad", "grams": 150 },
+            { "person": "me", "food": "oil", "grams": 5 },
+            { "person": "lesha", "food": "stuffed-pepper", "pieces": 2 },
+            { "person": "lesha", "food": "buckwheat", "grams": 80 },
+            { "person": "lesha", "food": "salad", "grams": 150 },
+            { "person": "lesha", "food": "oil", "grams": 8 }
+          ]
+        },
+        {
+          "name": "Ужин",
+          "dish": "Драники со сметаной",
+          "servings": [
+            { "person": "me", "food": "draniki", "pieces": 2 },
+            { "person": "me", "food": "sour-cream", "grams": 30 },
+            { "person": "me", "food": "cucumber", "grams": 100 },
+            { "person": "lesha", "food": "draniki", "pieces": 4 },
+            { "person": "lesha", "food": "sour-cream", "grams": 40 }
+          ]
+        },
+        {
+          "name": "Перекус",
+          "dish": "Творог с мёдом",
+          "servings": [
+            { "person": "me", "food": "tvorog", "grams": 150 },
+            { "person": "me", "food": "honey", "grams": 5 },
+            { "person": "lesha", "food": "tvorog", "grams": 220 },
+            { "person": "lesha", "food": "honey", "grams": 15 }
+          ]
+        }
+      ]
+    }
+  ]
+}
