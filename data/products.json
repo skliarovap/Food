@@ -71,6 +71,53 @@
       "fat": 0,
       "carbs": 27.7,
       "notes": "Справочно на 100 г. 1 ч. л. ≈ 5 г."
+    },
+    {
+      "id": "sunflower-oil",
+      "name": "Подсолнечное масло",
+      "category": "бакалея",
+      "basis": "ml",
+      "quantity": null,
+      "kcal": 899,
+      "protein": 0,
+      "fat": 99.9,
+      "carbs": 0,
+      "notes": "Рафинированное, справочно на 100 мл."
+    },
+    {
+      "id": "salt",
+      "name": "Соль",
+      "category": "бакалея",
+      "basis": "g",
+      "quantity": null,
+      "kcal": 0,
+      "protein": 0,
+      "fat": 0,
+      "carbs": 0,
+      "notes": "1 ч. л. ≈ 5 г."
+    },
+    {
+      "id": "water",
+      "name": "Вода",
+      "category": "бакалея",
+      "basis": "ml",
+      "quantity": null,
+      "kcal": 0,
+      "protein": 0,
+      "fat": 0,
+      "carbs": 0
+    },
+    {
+      "id": "baking-soda",
+      "name": "Сода",
+      "category": "бакалея",
+      "basis": "g",
+      "quantity": null,
+      "kcal": 0,
+      "protein": 0,
+      "fat": 0,
+      "carbs": 0,
+      "notes": "1/2 ч. л. ≈ 3 г."
     }
   ]
 }

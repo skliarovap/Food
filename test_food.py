@@ -184,6 +184,16 @@ class WaffleRecipeTests(unittest.TestCase):
         self.assertIn("359,2 ккал на порцию", text)
         self.assertIn("13 вафель", text)
 
+    def test_lace_blini_recipe(self):
+        data = load_all(Path(__file__).resolve().parent / "data")
+        self.assertEqual(validate(data), [])
+        recipe = index_by_id(data["recipes"])["lace-blini"]
+        nutrition = compute_recipe_nutrition(recipe, index_by_id(data["products"]))
+        self.assertEqual(nutrition["missing"]["kcal"], [])
+        self.assertAlmostEqual(nutrition["servings"], 65)
+        self.assertAlmostEqual(nutrition["total"]["kcal"], 7065.65, places=1)
+        self.assertAlmostEqual(nutrition["per_serving"]["kcal"], 7065.65 / 65, places=1)
+
 
 class MenuTests(unittest.TestCase):
     def test_menu_targets_and_fish_allergy(self):
